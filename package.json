@@ -1,0 +1,11 @@
+{
+  "name": "springboot-cucumber",
+  "version": "1.0.0",
+  "description": "## full springboot project with cucumber and selenium",
+  "main": "index.js",
+  "scripts": {
+    "git_set_email": "git config user.email daniel197711@gmail.com"
+  },
+  "author": "",
+  "license": "ISC"
+}

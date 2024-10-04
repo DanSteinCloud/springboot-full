@@ -1,0 +1,22 @@
+Feature: Create roads from features folder
+
+  Scenario: Create 4 raods in country TOGO
+    Given Country name is "TOGO" and No roads exists
+    When Create 2 roads with name "N 1" and type "national"
+    Then Total number of roads with type "national" should be 2
+    When Create 2 roads with name "N 2" and type "national"
+    Then Total number of roads with type "national" should be 4
+    
+  Scenario: Create 50 raods in region Plateau
+    Given Country name is "TOGO" and Region name is "Plateau" and No roads exists
+    When Create 25 roads with name "Elavagnon" and type "regional"
+    Then Total number of roads with type "regional" should be 25
+    When Create 25 roads with name "agbonou" and type "regional"
+    Then Total number of roads with type "regional" should be 50
+
+  Scenario: Create 100 raods in commune Lome 
+    Given Country name is "TOGO" and Region name is "Maritime" and Commune name is "Lome" and No roads exists
+    When Create 50 roads with name "assivito" and type "communal"
+    Then Total number of roads with type "communal" should be 50
+    When Create 50 roads with name "djidjole" and type "communal"
+    Then Total number of aliens with type "communal" should be 100

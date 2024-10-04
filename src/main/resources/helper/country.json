@@ -1,0 +1,18 @@
+{
+ "countryCode":225,
+ "countryAcronyme":"CI",
+ "countryName":"COTE D'IVOIRE",
+ "country_flag":"",
+ "country_population":8000000,
+ "country_men_population":3000000,
+ "country_women_population":3000000,
+ "country_children_population":4000000,
+ "country_main_crop":"Maïs",
+ "routes": [
+   {
+    "id":1,
+    "route_type":"Nationale",
+    "route_name":"N° 1",
+    "description":"Route nationale N° 1"
+    }]
+}

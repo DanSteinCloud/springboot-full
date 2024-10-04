@@ -1,0 +1,17 @@
+Feature: Test Country validity from features folder
+
+  Scenario: List fruit
+	  Given the system knows about the following fruit:
+	    | id | countryCode | countryAcronyme | countryName |country_flag |
+	    | 1 | 228 | TG | TOGO | TOG |
+	    | strawberry | red    |
+	  When the client requests a list of fruit
+	  Then the response is a list containing 2 fruits
+	  And one fruit has the following attributes:
+	    | attribute | type   | value  |
+	    | name      | String | banana |
+	    | color     | String | yellow |
+	  And one fruit has the following attributes:
+	    | attribute | type   | value      |
+	    | name      | String | strawberry |
+	    | color     | String | red        |

@@ -1,0 +1,212 @@
+package com.emura_group.country_geo_tracing.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.emura_group.country_geo_tracing.exception.ResourceNotFoundException;
+import com.emura_group.country_geo_tracing.factory.RouteFactory;
+import com.emura_group.country_geo_tracing.model.Quartier;
+import com.emura_group.country_geo_tracing.model.Route;
+import com.emura_group.country_geo_tracing.repository.QuartierRepository;
+import com.emura_group.country_geo_tracing.repository.RouteRepository;
+
+
+@CrossOrigin(origins = "http://localhost:8080")
+@RestController
+@RequestMapping("/api")
+public class RouteController2 {
+
+  @Autowired
+  RouteRepository routeRepository;
+  
+  @Autowired
+  QuartierRepository quartierRepository;
+ 
+  
+//  private RouteAdapterFactory routeAdapterFactory;
+//  
+//  public RouteController(RouteAdapterFactory routeAdapterFactory) {
+//      this.routeAdapterFactory = routeAdapterFactory;
+//  }
+  
+  
+  private final RouteFactory factory;
+
+  public RouteController2(RouteFactory factory) {
+      this.factory = factory;
+  }
+
+  @PostMapping("/routeByType/")
+  public Route createRoute(@RequestBody Route route) {
+      Route savedRoute = factory.saveRoute(factory.createRoute(route));
+      return savedRoute;
+  }
+  
+
+  @GetMapping("/routes")
+  public ResponseEntity<List<Route>> getAllroutes() {
+    List<Route> routes = new ArrayList<Route>();
+
+    routeRepository.findAll().forEach(routes::add);
+
+    if (routes.isEmpty()) {
+      return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    return new ResponseEntity<>(routes, HttpStatus.OK);
+  }
+
+  @GetMapping("/route/{id}")
+  public ResponseEntity<Route> getroutesById(@PathVariable(value = "id") Long id) {
+    Route route = routeRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Not found route with id = " + id));
+
+    return new ResponseEntity<>(route, HttpStatus.OK);
+  }
+  
+  //@PostMapping("/route/")
+  //public ResponseEntity<Route> createRoute(@RequestBody Route route) {
+	  
+//    Route _route = routeRepository.save(new Route(
+//    		route.getRouteType(), 
+//    		route.getRouteName(), 
+//    		route.getDescription()));
+//    return new ResponseEntity<>(_route, HttpStatus.CREATED);
+ // }
+  
+
+  @PutMapping("/route/{id}")
+  public ResponseEntity<Route> updateRoute(@PathVariable("id") long id, @RequestBody Route routeRequest) {
+    Route route = routeRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("routeId " + id + "not found"));
+
+    route.setRouteName(routeRequest.getRouteName());
+    route.setDescription(routeRequest.getDescription());
+
+    return new ResponseEntity<>(routeRepository.save(route), HttpStatus.OK);
+  }
+  
+  @DeleteMapping("/route/{id}")
+  public ResponseEntity<HttpStatus> deleteRoute(@PathVariable("id") long id) {
+    routeRepository.deleteById(id);
+
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+  
+  
+  // Routes - Quartiers Operations
+  
+//  @GetMapping("/quartiers/{quartierId}/routes")
+//  public ResponseEntity<List<Route>> getAllRoutesByQuartierId(@PathVariable(value = "quartierId") Long quartierId) {
+//    if (!quartierRepository.existsById(quartierId)) {
+//      throw new ResourceNotFoundException("Not found quartier with id = " + quartierId);
+//    }
+//
+//    List<Route> routes = routeRepository.findRoutesByQuartierId(quartierId);
+//    return new ResponseEntity<>(routes, HttpStatus.OK);
+//  }
+  
+//  @GetMapping("/routes/{routeId}/quartiers")
+//  public ResponseEntity<List<Quartier>> getAllquartiersByRouteId(@PathVariable(value = "routeId") Long routeId) {
+//    if (!routeRepository.existsById(routeId)) {
+//      throw new ResourceNotFoundException("Not found route  with id = " + routeId);
+//    }
+//
+//    List<Quartier> quartiers = quartierRepository.findQuartiersByRouteId(routeId);
+//    return new ResponseEntity<>(quartiers, HttpStatus.OK);
+//  }
+  
+  @DeleteMapping("/quartiers/{quartierId}/routes/{routeId}")
+  public ResponseEntity<HttpStatus> deleteRouteFromQuartier(
+		  @PathVariable(value = "quartierId") Long quartierId, 
+		  @PathVariable(value = "routeId") Long routeId) {
+    Quartier quartier = quartierRepository.findById(quartierId)
+        .orElseThrow(() -> new ResourceNotFoundException("Not found quartier with id = " + quartierId));
+    
+    quartier.removeRoute(routeId);
+    quartierRepository.save(quartier);
+    
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+  
+  @PostMapping("/quartiers/{quartierId}/routes")
+  public ResponseEntity<Route> addRoute(@PathVariable(value = "quartierId") Long quartierId, @RequestBody Route routeRequest) {
+    Route route = quartierRepository.findById(quartierId).map(quartier -> {
+      long routeId = routeRequest.getId();
+      
+      // route is existed
+      if (routeId != 0L) {
+        Route _route = routeRepository.findById(routeId)
+            .orElseThrow(() -> new ResourceNotFoundException("Not found route with id = " + routeId));
+        quartier.addRoute(_route);
+        quartierRepository.save(quartier);
+        return _route;
+      }
+      
+      // add and create new route
+      quartier.addRoute(routeRequest);
+      return routeRepository.save(routeRequest);
+    }).orElseThrow(() -> new ResourceNotFoundException("Not found quartier with id = " + quartierId));
+
+    return new ResponseEntity<>(route, HttpStatus.CREATED);
+  }
+  
+
+  
+  
+  
+  
+package com.emura_group.country_geo_tracing.controller;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import com.emura_group.country_geo_tracing.factory.RouteFactory;
+import com.emura_group.country_geo_tracing.model.Route;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@CrossOrigin(origins = "http://localhost:8080")
+@RestController
+@RequestMapping("/api")
+public class RouteController {
+  
+  private static final Logger log = LoggerFactory.getLogger(RouteController.class);
+  
+  //@Qualifier("nationale") RouteFactory factory;
+  RouteFactory factory;
+//  private final RouteFactory factory;
+//  @Autowired
+//  public RouteController(@Qualifier("nationale") RouteFactory factory) {
+//	  this.factory = factory;
+//  }
+  
+  @PostMapping("/road/")
+  public void createRoute(@RequestBody Route route) {
+	  log.info("Logging the Routefactory {}", factory.getRouteService(route.getRouteType()));
+	  //factory.getRouteService(route.getRouteType()).createRouteByRouteType(route);
+	  factory.getRouteService(route.getRouteType());
+		System.out.println("Successfully Published the road = ' " + route + " ' to the RegistrationTopic");
+		
+		//return "Successfully published the user = ' " + user + " ' to the RegistrationTopic";
+//      Route savedRoute = factory.saveRoute(factory.createRoute(route));
+//      return savedRoute;
+  }
+}
